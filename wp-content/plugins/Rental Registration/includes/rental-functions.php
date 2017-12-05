@@ -111,4 +111,97 @@ function show_table() {
     return $list_table->display();
 }
 
-add_shortcode('rental', 'show_table');
+function add_new_registration($add) {
+    echo 'New registration added';
+    global $wpdb;
+    $me = wp_get_current_user()->user_login;
+    $new_add_parcel = $wpdb->get_row('SELECT * FROM ' . $wpdb->prefix . 'rr_parcels_ref Where Property_Address="' . $add . '"', ARRAY_A);
+    $wpdb->insert(
+            $wpdb->prefix . 'rr_properties', array(
+        'parcel_id' => $new_add_parcel['Parcel_Id'],
+        'Print_Key' => $new_add_parcel['Print_Key'],
+        'user' => $me,
+        'Address' => $new_add_parcel['Property_Address'],
+        'status' => 'Incomplete',
+            )
+    );
+    $new_reg_id = $wpdb->get_var('select LAST_INSERT_ID()');
+    $new_owners = $wpdb->get_results('SELECT * FROM ' . $wpdb->prefix . 'rr_owners_ref Where Parcel_Id="' . $new_add_parcel['Parcel_Id'] . '"', ARRAY_A);
+    foreach ($new_owners as $new_owner) {
+        $wpdb->insert(
+                $wpdb->prefix . 'rr_owners', array(
+            'Owner Name' => $new_owner['Owner Name'],
+            'Address Line' => $new_owner['Address Line'],
+            'City' => $new_owner['City'],
+            'State' => $new_owner['State'],
+            'Zip' => $new_owner['Zip'],
+            'Registration_ID' => $new_reg_id,
+                )
+        );
+    };
+}
+
+function display_property() {
+    if ($_GET['new_address'] > '') {
+        add_new_registration($_GET['new_address']);
+    }
+    $fields = [
+        // ["name" => "Address", "class" => "rr_address"],
+        ["name" => "Print_Key", "class" => "rr_printkey", "label" => "Parcel Id"],
+        ["name" => "num_units", "class" => "rr_num_Unitsp", "label" => "# Units"],
+        ["name" => "occupied_units", "class" => "rr_occupied_units", "label" => " # Occupied"],
+        ["name" => "status", "class" => "rr_status"]
+    ];
+    add_thickbox();
+    echo property_search_popup();
+    $myRentals = rr_get_myrentals();
+    foreach ($myRentals as $rental) {
+
+        echo '<div><table class ="rr_', $rental["status"], ' rr_table" >';
+        echo '<tr> <th>', $rental["Address"], ' </th></tr>';
+        echo '<tr><td> Parcel ID </td><td> Units </td><td> Occupied </td><td> Status </td></tr>';
+        echo "<tr>";
+        foreach ($fields as $field) {
+            td($rental[$field["name"]], $field["class"]);
+        }
+        echo "</tr>";
+        echo "</table></div>";
+    }
+}
+
+add_shortcode('rental', 'display_property');
+
+function rr_get_myrentals() {
+    global $wpdb;
+    $me = wp_get_current_user()->user_login;
+    return $wpdb->get_results('SELECT * FROM ' . $wpdb->prefix . 'rr_properties Where user = "' . $me . '" ORDER BY Address', ARRAY_A);
+}
+
+function property_search_popup() {
+    $popup_button = '<div style="text-align: center; padding: 20px 0;">'
+            . '<input class="thickbox" title="Register Rental Property" '
+            . 'alt="#TB_inline?height=300&amp;width=400&amp;inlineId=examplePopup1" '
+            . 'type="button" value="+ Add a Rental Property" /></div>';
+
+    $popup = '<div id="examplePopup1" style="display:none"><h2>Select Property to Register</h2>'
+            . '<form action="' . $pagename . '"><select name="new_address">' . rr_get_all_addresses() . '</select> '
+            . '<input type="submit"></form></div>';
+    return $popup_button . $popup;
+}
+
+function td($param, $class) {
+    echo "<td class =" . $class . ">";
+    echo $param;
+    echo "</td>";
+}
+
+function rr_get_all_addresses() {
+    global $wpdb;
+
+    $addesses = $wpdb->get_results('SELECT Property_Address FROM ' . $wpdb->prefix . 'rr_parcels_ref ORDER BY Address_Num, Property_Address', ARRAY_A);
+    $t = '';
+    foreach ($addesses as $address) {
+        $t .= '<option>' . $address["Property_Address"] . '</option>';
+    }
+    return $t;
+}
