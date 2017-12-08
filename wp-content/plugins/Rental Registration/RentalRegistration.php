@@ -34,12 +34,11 @@ register_activation_hook(__FILE__, 'rental_Registration_activation');
 function rental_Registration_activation() {
     // Get access to global database access class
     global $wpdb;
-    $db_prefix = $wpdb->get_blog_prefix() . '_test_';
-
+    $db_prefix = $wpdb->get_blog_prefix();
+    create_owners_table($db_prefix);
     create_parcel_ref_table($db_prefix);
     create_properties_table($db_prefix);
     create_owners_ref_table($db_prefix);
-    create_owners_table($db_prefix);
 }
 
 function create_properties_table($prefix) {
@@ -54,6 +53,7 @@ function create_properties_table($prefix) {
                         `num_units` int,
                         `occupied_units` int,
                         `status` VARCHAR(10),
+                        `expiration_date` datetime DEFAULT NULL,
 			PRIMARY KEY (`registration_id`) ,
                         INDEX `Address` (`Address`),
                         INDEX `user` (`user`)
@@ -66,7 +66,7 @@ function create_properties_table($prefix) {
 function create_parcel_ref_table($prefix) {
     // Prepare SQL query to create database table
     // using received table prefix
-    $creation_query = 'CREATE TABLE IF NOT EXISTS ' . $prefix . 'rr_parcel_ref(
+    $creation_query = 'CREATE TABLE IF NOT EXISTS ' . $prefix . 'rr_parcels_ref(
 			`Parcel_Id` int(11) NOT NULL,
                         `Print_Key` char(30) NOT NULL,
                         `Property_Address` char(50) DEFAULT NULL,
@@ -101,7 +101,7 @@ function create_owners_ref_table($prefix) {
 function create_owners_table($prefix) {
     // Prepare SQL query to create database table
     // using received table prefix
-    $creation_query = 'CREATE TABLE IF NOT EXISTS' . $prefix . 'rr_owners(
+    $creation_query = 'CREATE TABLE IF NOT EXISTS ' . $prefix . 'rr_owners(
                         `owner_idx` int(20) NOT NULL AUTO_INCREMENT,
                         `Owner Name` varchar(100) NOT NULL,
                         `Address Line` varchar(100) NOT NULL,
@@ -126,6 +126,7 @@ add_action('init', function() {
     include dirname(__FILE__) . '/includes/class-rental-list-table.php';
     include dirname(__FILE__) . '/includes/class-form-handler.php';
     include dirname(__FILE__) . '/includes/rental-functions.php';
+    include dirname(__FILE__) . '/includes/my-rentals.php';
     new Rental_admin_menu();
 });
 

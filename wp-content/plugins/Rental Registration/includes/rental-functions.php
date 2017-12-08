@@ -145,48 +145,60 @@ function display_property() {
     if ($_GET['new_address'] > '') {
         add_new_registration($_GET['new_address']);
     }
-    $fields = [
+    $property_fields = [
         // ["name" => "Address", "class" => "rr_address"],
         ["name" => "Print_Key", "class" => "rr_printkey", "label" => "Parcel Id"],
         ["name" => "num_units", "class" => "rr_num_Unitsp", "label" => "# Units"],
         ["name" => "occupied_units", "class" => "rr_occupied_units", "label" => " # Occupied"],
         ["name" => "status", "class" => "rr_status"]
     ];
+    $owner_fields = [
+        // ["name" => "Address", "class" => "rr_address"],
+        ["name" => "Owner Name", "class" => "rr_owner_name", "label" => "Name"],
+        ["name" => "Address Line", "class" => "rr_address", "label" => "Address"],
+        ["name" => "City", "class" => "rr_add_City", "label" => "City"],
+        ["name" => "title", "class" => "rr_status"]
+    ];
     add_thickbox();
     echo property_search_popup();
     $myRentals = rr_get_myrentals();
     foreach ($myRentals as $rental) {
 
-        echo '<div><table class ="rr_', $rental["status"], ' rr_table" >';
+        echo '<div><table class ="rr_', $rental["status"], ' rr_property_table" >';
         echo '<tr> <th>', $rental["Address"], ' </th></tr>';
         echo '<tr><td> Parcel ID </td><td> Units </td><td> Occupied </td><td> Status </td></tr>';
         echo "<tr>";
-        foreach ($fields as $field) {
+        foreach ($property_fields as $field) {
             td($rental[$field["name"]], $field["class"]);
         }
         echo "</tr>";
+        echo "</table></div>";
+        $rental_owners = rr_get_rental_owners($rental["registration_id"]);
+        echo '<div><table class ="rr_owner_table" >';
+        echo '<tr> <th> Property Owners </th></tr>';
+        echo '<tr><td> Name </td><td> Address </td><td> City State Zip </td><td> Status </td></tr>';
+        foreach ($rental_owners as $owner) {
+            echo "<tr>";
+            foreach ($owner_fields as $field) {
+                td($owner[$field["name"]], $field["class"]);
+            }
+            echo "</tr>";
+        }
         echo "</table></div>";
     }
 }
 
 add_shortcode('rental', 'display_property');
 
+function rr_get_rental_owners($reg_id) {
+    global $wpdb;
+    return $wpdb->get_results('SELECT * FROM ' . $wpdb->prefix . 'rr_owners Where Registration_ID = "' . $reg_id . '" ', ARRAY_A);
+}
+
 function rr_get_myrentals() {
     global $wpdb;
     $me = wp_get_current_user()->user_login;
     return $wpdb->get_results('SELECT * FROM ' . $wpdb->prefix . 'rr_properties Where user = "' . $me . '" ORDER BY Address', ARRAY_A);
-}
-
-function property_search_popup() {
-    $popup_button = '<div style="text-align: center; padding: 20px 0;">'
-            . '<input class="thickbox" title="Register Rental Property" '
-            . 'alt="#TB_inline?height=300&amp;width=400&amp;inlineId=examplePopup1" '
-            . 'type="button" value="+ Add a Rental Property" /></div>';
-
-    $popup = '<div id="examplePopup1" style="display:none"><h2>Select Property to Register</h2>'
-            . '<form action="' . $pagename . '"><select name="new_address">' . rr_get_all_addresses() . '</select> '
-            . '<input type="submit"></form></div>';
-    return $popup_button . $popup;
 }
 
 function td($param, $class) {
