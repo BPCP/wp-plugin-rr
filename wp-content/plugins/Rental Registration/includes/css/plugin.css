@@ -1,0 +1,94 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/*
+    Created on : Dec 9, 2017, 9:28:58 PM
+    Author     : brian
+*/
+/* Style the tab */
+.rr_input_group {
+    display: inline-block;
+}
+.rr_input_label{
+    color:#476564;
+    display:block;
+}
+.rr_tablinks{
+    color:black;
+
+
+
+}
+.rr_submitted{
+    background-color:lightyellow;
+}
+.rr_submitted.rr_Expiration{
+    background-color:blue;
+}
+div.rr_Incomplete.rr_registration_list > span.rr_Expiration{
+    visibility:hidden;}
+
+.rr_table tr td{
+    border: 1px solid black;
+}
+div.rr_Incomplete.rr_registration_list span{
+    border: 2px solid black;
+    padding:8px;
+    background-color:pink	;
+    margin:2px;
+
+}
+h1.entry-title {
+    visibility:hidden;
+}
+div.tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+div.tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+div.tab button:hover {
+    background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+div.tab button.active {
+    background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+::-webkit-input-placeholder {
+    color:#ff8080;
+}
+:-moz-placeholder { /* Firefox 18- */
+    color: #ff8080;
+}
+::-moz-placeholder {  /* Firefox 19+ */
+    color: #ff8080;
+}
+:-ms-input-placeholder {
+    color: #ff8080;
+}
+input[type='text']{
+    color:red;
+}

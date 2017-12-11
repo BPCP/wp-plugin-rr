@@ -29,6 +29,24 @@
  */
 // Register function to be called when plugin is activated
 register_activation_hook(__FILE__, 'rental_Registration_activation');
+add_action('wp_enqueue_scripts', 'register_plugin_styles');
+
+
+add_action('init', function() {
+    include dirname(__FILE__) . '/includes/class-rental-admin-menu.php';
+    include dirname(__FILE__) . '/includes/class-rental-list-table.php';
+    include dirname(__FILE__) . '/includes/class-form-handler.php';
+    include dirname(__FILE__) . '/includes/rental-functions.php';
+    include dirname(__FILE__) . '/includes/my-registrations.php';
+    include dirname(__FILE__) . '/includes/edit-registration.php';
+    new Rental_admin_menu();
+});
+
+function register_plugin_styles() {
+    wp_enqueue_style('rentalregistrations', plugins_url('includes/css/plugin.css', __FILE__));
+    wp_enqueue_script('jquery');
+    wp_enqueue_script('rentalregistrations', plugins_url('includes/js/rental_registration.js', __FILE__));
+}
 
 // Activation Callback
 function rental_Registration_activation() {
@@ -39,6 +57,27 @@ function rental_Registration_activation() {
     create_parcel_ref_table($db_prefix);
     create_properties_table($db_prefix);
     create_owners_ref_table($db_prefix);
+    create_page('Edit Registration');
+    create_page('My Registrations');
+}
+
+function create_page($pagename) {
+    global $wpdb;
+    if (null === $wpdb->get_row("SELECT post_name FROM {$wpdb->prefix}posts WHERE post_name = '{$pagename}'", 'ARRAY_A')) {
+        $current_user = wp_get_current_user();
+
+        // create post object
+        $page = array(
+            'post_title' => __($pagename),
+            'post_status' => 'publish',
+            'post_author' => $current_user->ID,
+            'post_type' => 'page',
+            'post_content' => '[' . sanitize_title($pagename) . ']',
+        );
+
+        // insert the post into the database
+        wp_insert_post($page);
+    }
 }
 
 function create_properties_table($prefix) {
@@ -121,24 +160,11 @@ function create_owners_table($prefix) {
     $wpdb->query($creation_query);
 }
 
-add_action('init', function() {
-    include dirname(__FILE__) . '/includes/class-rental-admin-menu.php';
-    include dirname(__FILE__) . '/includes/class-rental-list-table.php';
-    include dirname(__FILE__) . '/includes/class-form-handler.php';
-    include dirname(__FILE__) . '/includes/rental-functions.php';
-    include dirname(__FILE__) . '/includes/my-rentals.php';
-    new Rental_admin_menu();
-});
-
-function wptuts_scripts_basic() {
-    // Register the script like this for a plugin:
-    wp_register_script('tablesaw', plugins_url('/includes/stackonly/stackonly.js', __FILE__));
-    // or
-    // Register the script like this for a theme:
-    //wp_register_script( 'custom-script', get_template_directory_uri() . '/js/custom-script.js' );
-    // For either a plugin or a theme, you can then enqueue the script:
-    wp_enqueue_script('tablesaw', '', array('jquery'));
+function deploy_registration_pages() {
+    $dir = plugin_dir_path(__FILE__) . 'includes/pages/';
+    if (is_page('auto-created')) {
+        echo 'something';
+        include($dir . "test.php");
+        //die();
+    }
 }
-
-add_action('wp_enqueue_scripts', 'wptuts_scripts_basic');
-?>
